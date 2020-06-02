@@ -14,9 +14,11 @@ import smoothing_library as SL
 #################################### INPUT ############################################
 def generate_data(realization):
     sim = realization
-    raise NotImplementedError("Please update the directory of the data to your system below.")
-    snapshot = '/mnt/ceph/users/fvillaescusa/Quijote/Snapshots/latin_hypercube_HR/%d/snapdir_004/snap_004' % (sim,)
-    snapdir = '/mnt/ceph/users/fvillaescusa/Quijote/Halos/latin_hypercube/%d' % (sim,)
+    #raise NotImplementedError("Please update the directory of the data to your system below.")
+    #snapshot = '/mnt/ceph/users/fvillaescusa/Quijote/Snapshots/latin_hypercube_HR/%d/snapdir_004/snap_004' % (sim,)
+    #snapdir = '/mnt/ceph/users/fvillaescusa/Quijote/Halos/latin_hypercube/%d' % (sim,)
+    snapshot = '/projects/QUIJOTE/Snapshots/fiducial_HR/%d/snapdir_004/snap_004' % (sim,)
+    snapdir =  '/projects/QUIJOTE/Halos/fiducial_HR/%d' % (sim,)
     snapnum = 4
 
 # parameters for density field
