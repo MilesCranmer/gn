@@ -12,7 +12,8 @@ from torch import nn
 from torch.nn import Sequential as Seq, Linear as Lin, ReLU, Softplus
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau, OneCycleLR
-from tqdm.notebook import tqdm, trange
+#from tqdm.notebook import tqdm, trange
+from tqdm import tqdm, trange
 #!/usr/bin/env python
 # coding: utf-8
 
