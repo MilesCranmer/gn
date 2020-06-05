@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import torch
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 from sklearn.neighbors import KDTree
 from torch.autograd import Variable
 from torch.autograd import Variable, grad
@@ -22,7 +22,7 @@ def load_graph_data(realization=0, cutoff=30, batch=32):
         cur_data = pd.read_hdf('halos_%d.h5'%(realization,))
     except:
         from generate_halo_data_nv import generate_data
-        generate_data(realization)
+        generate_data(realization,'adroit')
         cur_data = pd.read_hdf('halos_%d.h5'%(realization,))
 
 # # Now, let's connect nearby halos:
@@ -34,9 +34,9 @@ def load_graph_data(realization=0, cutoff=30, batch=32):
 
     region_of_influence = cutoff
 
-    plt.hist(tree.query_radius(xyz, region_of_influence, count_only=True)-1, bins=31);
-    plt.xlabel('Number with')
-    plt.ylabel('Number of neighbors')
+    #plt.hist(tree.query_radius(xyz, region_of_influence, count_only=True)-1, bins=31);
+    #plt.xlabel('Number with')
+    #plt.ylabel('Number of neighbors')
 
 # ## So, let's create the adjacency matrix:
 
@@ -301,11 +301,11 @@ def get_messages(ogn, trainloader, n_msg=250):
     all_nodes = np.concatenate(all_nodes)
     all_outputs = np.concatenate(all_outputs)
 
-    plt.scatter(
-        x=np.arange(raw_msg.std(0).shape[0]),
-        y=np.log10(np.sort(raw_msg.std(0).detach().cpu().numpy())),
-        s=3
-    )
+    #plt.scatter(
+    #    x=np.arange(raw_msg.std(0).shape[0]),
+    #    y=np.log10(np.sort(raw_msg.std(0).detach().cpu().numpy())),
+    #    s=3
+    #)
 
     msg_func_data = pd.DataFrame({**{
         'dx dy dz vx1 vy1 vz1 M1 vx2 vy2 vz2 M2'.split(' ')[i]: all_msg_input[:, i] for i in range(all_msg_input.shape[1])

@@ -12,13 +12,27 @@ import smoothing_library as SL
 # # Pick files:
 
 #################################### INPUT ############################################
-def generate_data(realization):
+def generate_data(realization,cluster):
     sim = realization
     #raise NotImplementedError("Please update the directory of the data to your system below.")
     #snapshot = '/mnt/ceph/users/fvillaescusa/Quijote/Snapshots/latin_hypercube_HR/%d/snapdir_004/snap_004' % (sim,)
     #snapdir = '/mnt/ceph/users/fvillaescusa/Quijote/Halos/latin_hypercube/%d' % (sim,)
-    snapshot = '/projects/QUIJOTE/Snapshots/fiducial_HR/%d/snapdir_004/snap_004' % (sim,)
-    snapdir =  '/projects/QUIJOTE/Halos/fiducial_HR/%d' % (sim,)
+    if cluster=='adroit':
+        prefix = '/scratch/network/jdh4'
+        snapshot = prefix +'/projects/QUIJOTE/Snapshots/fiducial_HR/%d/snapdir_004/snap_004' % (sim,)
+        snapdir =  prefix +'/projects/QUIJOTE/Halos/fiducial_HR/%d' % (sim,)
+    elif cluster=='tiger':
+        snapshot = '/projects/QUIJOTE/Snapshots/fiducial_HR/%d/snapdir_004/snap_004' % (sim,)
+        snapdir =  '/projects/QUIJOTE/Halos/fiducial_HR/%d' % (sim,)
+    else:
+        try:
+            snapshot = '/mnt/ceph/users/fvillaescusa/Quijote/Snapshots/latin_hypercube_HR/%d/snapdir_004/snap_004' % (sim,)
+            snapdir = '/mnt/ceph/users/fvillaescusa/Quijote/Halos/latin_hypercube/%d' % (sim,)
+        except ValueError:
+            print("Path not found. Wrong cluster or data DNE.")
+
+    #snapshot = '/projects/QUIJOTE/Snapshots/fiducial_HR/%d/snapdir_004/snap_004' % (sim,)
+    #snapdir =  '/projects/QUIJOTE/Halos/fiducial_HR/%d' % (sim,)
     snapnum = 4
 
 # parameters for density field
