@@ -17,12 +17,22 @@ from tqdm import tqdm, trange
 #!/usr/bin/env python
 # coding: utf-8
 
+def get_cluster():
+   import socket
+   host = socket.gethostname().lower()
+   if host.startswith('adroit'):
+     return 'adroit'
+   elif host.startswith('tiger'):
+     return 'tiger'
+   else:
+     return ''
+
 def load_graph_data(realization=0, cutoff=30, batch=32):
     try:
         cur_data = pd.read_hdf('halos_%d.h5'%(realization,))
     except:
         from generate_halo_data_nv import generate_data
-        generate_data(realization,'adroit')
+        generate_data(realization, get_cluster())
         cur_data = pd.read_hdf('halos_%d.h5'%(realization,))
 
 # # Now, let's connect nearby halos:
