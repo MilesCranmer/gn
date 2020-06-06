@@ -194,8 +194,8 @@ def do_training(
         l1=1e-2):
 
     batch = trainloader.batch_size
-    X = graph.x
-    y = graph.y
+    X = graph.x.cuda() #CK
+    y = graph.y.cuda() #CK
 # # Set up optimizer:
     init_lr = lr
     opt = torch.optim.Adam(ogn.parameters(), lr=init_lr, weight_decay=weight_decay)
@@ -226,10 +226,10 @@ def do_training(
                 g = Data(
                     x=torch.cat((
                         X[subgraph.n_id],
-                        X[subgraph.blocks[0].n_id])).cuda(),
+                        X[subgraph.blocks[0].n_id])),
                     y=torch.cat((
                         y[subgraph.n_id],
-                        y[subgraph.blocks[0].n_id])).cuda(),
+                        y[subgraph.blocks[0].n_id])),
                     edge_index=cur_edge_index.cuda()
                 )
                 
