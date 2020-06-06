@@ -27,6 +27,7 @@ def get_cluster():
    else:
      return ''
 
+#@profile
 def load_graph_data(realization=0, cutoff=30, batch=32):
     try:
         cur_data = pd.read_hdf('halos_%d.h5'%(realization,))
@@ -136,6 +137,7 @@ class GN(MessagePassing):
         
         self.n = 32
         
+    #@profile
     def forward(self, g):
         #x is [n, n_f]
         x = g.x
@@ -143,6 +145,7 @@ class GN(MessagePassing):
 #         return self.propagate(edge_index, x=x)
         return self.propagate(edge_index, size=(x.size(0), x.size(0)), x=x)
       
+    #@profile
     def message(self, x_i, x_j):
         # x_i has shape [n_e, n_f]; x_j has shape [n_e, n_f]
         dx = x_i[:, :3] - x_j[:, :3]
@@ -152,12 +155,14 @@ class GN(MessagePassing):
             x_i[:, 3:], x_j[:, 3:]], dim=1) # tmp has shape [E, 2 * in_channels]
         return self.msg_fnc(tmp) #* (100/r2[:, None])
     
+    #@profile
     def update(self, aggr_out, x=None):
         # aggr_out has shape [n, msg_dim]
 
         tmp = torch.cat([x[:self.n, 3:], aggr_out[:self.n]], dim=1)
         return self.node_fnc(tmp) #[n, nupdate]
 
+#@profile
 def create_graph_network(hidden=300, msg_dim=100, output_dim=1):
     # We'll use the L1 regularization:
 
@@ -173,6 +178,7 @@ def create_graph_network(hidden=300, msg_dim=100, output_dim=1):
 
     return ogn
 
+#@profile
 def new_loss(self, g, cur_len, augment=True, regularization=1e-2):
     
     self.n = cur_len
@@ -187,6 +193,7 @@ def new_loss(self, g, cur_len, augment=True, regularization=1e-2):
     
     return base_loss, regularization * normalized_l05
 
+#@profile
 def do_training(
         ogn, graph, trainloader,
         lr=1e-3, total_epochs=100,
