@@ -29,7 +29,7 @@ def get_cluster():
    else:
      return ''
 
-def load_graph_data(realization=0, cutoff=30, batch=32):
+def load_graph_data(realization=0, cutoff=30):
     try:
         cur_data = pd.read_hdf('halos_%d.h5'%(realization,))
     except:
@@ -232,7 +232,7 @@ def do_training(
             Xcur = torch.cat([X[node_idx], X[neighbor_idx]], dim=0)
             ycur = torch.cat([y[node_idx], y[neighbor_idx]], dim=0)
 
-            edge_index = torch.cat([new_node_idx[None], new_neighbor_idx[None]])
+            edge_index = torch.cat([new_neighbor_idx[None], new_node_idx[None]])#new_node_idx[None], new_neighbor_idx[None]])
             
             g = Data(
                  x=Xcur,
