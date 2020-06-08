@@ -31,7 +31,7 @@ ogn = create_graph_network(hidden=500, msg_dim=100)
 
 
 out_loss = do_training(
-    ogn, graph_data['graph'], graph_data['trainloader'],
+    ogn, graph_data['graph'],
     total_epochs=20, batch_per_epoch=150
 );
 

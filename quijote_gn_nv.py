@@ -14,6 +14,8 @@ from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau, OneCycleLR
 #from tqdm.notebook import tqdm, trange
 from tqdm import tqdm, trange
+from torch import sparse
+import torch_sparse as ts
 #!/usr/bin/env python
 # coding: utf-8
 
@@ -105,13 +107,8 @@ def load_graph_data(realization=0, cutoff=30, batch=32):
         y=y)
 
 
-    trainloader = NeighborSampler(
-        graph_data,
-        size=1.0, num_hops=1, batch_size=batch, shuffle=True)
-
     return {
         'graph': graph_data,
-        'trainloader': trainloader,
         'column_description': 'x columns are [x, y, z, vx, vy, vz, M]; everything has been scaled to be std=1. y columns are [bias, mask], where mask=1 indicates that the node should be used as a receiver for training; mask=0 indicates that the node is too close to the edge. Multiply the node-wise loss by the mask during training.',
         'pos_scale': pos_scale,
         'vel_scale': vel_scale,
@@ -188,15 +185,22 @@ def new_loss(self, g, cur_len, augment=True, regularization=1e-2):
     return base_loss, regularization * normalized_l05
 
 def do_training(
-        ogn, graph, trainloader,
+        ogn, graph,
         lr=1e-3, total_epochs=100,
         batch_per_epoch=1500, weight_decay=1e-8,
-        l1=1e-2):
+        batch=32, l1=1e-2):
 
-    batch = trainloader.batch_size
-    X = graph.x
-    y = graph.y
-# # Set up optimizer:
+    idx = graph.edge_index.cuda()
+    X = graph.x.cuda()
+    y = graph.y.cuda()
+    N = graph.x.shape[0]
+    device = torch.device('cuda')
+    v = torch.ones(idx.shape[1], device=device)
+    mat = sparse.IntTensor(idx, v, torch.Size([N, N]))
+    mat2 = ts.tensor.SparseTensor.from_torch_sparse_coo_tensor(mat, has_value=False)
+    row, col, _ = mat2.csr()
+    
+    # Set up optimizer:
     init_lr = lr
     opt = torch.optim.Adam(ogn.parameters(), lr=init_lr, weight_decay=weight_decay)
 
@@ -212,36 +216,39 @@ def do_training(
         total_loss = 0.0
         i = 0
         num_items = 0
-            
-        while i < batch_per_epoch:
-            for subgraph in trainloader():
-                if i >= batch_per_epoch:
-                    break
-                opt.zero_grad()
-                
-                n_offset = len(subgraph.n_id)
-                cur_len = n_offset
-                cur_edge_index = subgraph.blocks[0].edge_index.clone()
-                cur_edge_index[0] += n_offset
-                g = Data(
-                    x=torch.cat((
-                        X[subgraph.n_id],
-                        X[subgraph.blocks[0].n_id])).cuda(),
-                    y=torch.cat((
-                        y[subgraph.n_id],
-                        y[subgraph.blocks[0].n_id])).cuda(),
-                    edge_index=cur_edge_index.cuda()
-                )
-                
-                loss, reg = new_loss(ogn, g, cur_len, regularization=l1)
-                ((loss + reg)/int(cur_len+1)).backward()
-                
-                opt.step()
-                sched.step()
 
-                total_loss += loss.item()
-                i += 1
-                num_items += cur_len
+        while i < batch_per_epoch:
+            opt.zero_grad()
+
+            node_idx = torch.randint(0, N-1, (batch,), device=device)
+            neighbor_idx = torch.cat([col[row[node_idx[i]]:row[node_idx[i]+1]] for i in range(batch)])
+
+            new_node_idx = torch.cat([
+                torch.ones(
+                    row[node_idx[i]+1] - row[node_idx[i]], dtype=int, device=device
+                )*i for i in range(batch)])
+            new_neighbor_idx = torch.arange(batch, batch+len(neighbor_idx), device=device, dtype=int)
+
+            Xcur = torch.cat([X[node_idx], X[neighbor_idx]], dim=0)
+            ycur = torch.cat([y[node_idx], y[neighbor_idx]], dim=0)
+
+            edge_index = torch.cat([new_node_idx[None], new_neighbor_idx[None]])
+            
+            g = Data(
+                 x=Xcur,
+                 y=ycur,
+                 edge_index=edge_index
+            )
+            
+            loss, reg = new_loss(ogn, g, batch, regularization=l1)
+            ((loss + reg)/int(batch+1)).backward()
+            
+            opt.step()
+            sched.step()
+
+            total_loss += loss.item()
+            i += 1
+            num_items += batch
 
         cur_loss = total_loss/num_items
         all_losses.append(cur_loss)
