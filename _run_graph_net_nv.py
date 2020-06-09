@@ -14,7 +14,7 @@ from quijote_gn_nv import *
 # In[5]:
 
 
-graph_data = load_graph_data(realization=0, cutoff=10)  # make cutoff smaller for code to run faster (e.g., 20)
+graph_data = load_graph_data(realization=0, cutoff=20)  # make cutoff smaller for code to run faster (e.g., 20)
 #initial_mask = graph_data['graph'].y[:, 1].clone()
 
 
@@ -22,7 +22,7 @@ graph_data = load_graph_data(realization=0, cutoff=10)  # make cutoff smaller fo
 
 # In[6]:
 
-ogn = create_graph_network(hidden=500, msg_dim=100)
+ogn = create_graph_network(hidden=275, msg_dim=5)
 
 
 # Let's run the training on this realization, trying to predict the dark matter overdensity, and time it.
@@ -32,7 +32,8 @@ ogn = create_graph_network(hidden=500, msg_dim=100)
 
 out_loss = do_training(
     ogn, graph_data['graph'],
-    total_epochs=20, batch_per_epoch=150
+    total_epochs=50, batch_per_epoch=15, batch=175,
+    weight_decay=3.5882522951978176e-07, l1=0.0001468270725905777
 );
 
 
