@@ -78,7 +78,7 @@ space = {
     'hidden' : hp.qloguniform('hidden', np.log(10), np.log(1000+1), 1),
     'latent' : hp.qloguniform('latent', np.log(25), np.log(1000), 1),
     'msg' : hp.qloguniform('msg', np.log(1), np.log(1000), 1),
-    'batch_per': hp.qloguniform('batch_per', np.log(10), np.log(30000), 1),
+    'batch_per': hp.qloguniform('batch_per', np.log(10), np.log(3000), 1),
     'batch': hp.qloguniform('batch', np.log(10), np.log(1000), 1),
     'cutoff': hp.quniform('cutoff', 5, 50, 1)
 }
@@ -147,7 +147,7 @@ while True:
 
     n = NUMBER_TRIALS_PER_RUN
     try:
-        algo = tpe.suggest
+        algo = hyperopt.rand.suggest #tpe.suggest
         best = fmin(run_trial,
             space=space,
             algo=algo,
