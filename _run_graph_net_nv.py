@@ -22,7 +22,7 @@ graph_data = load_graph_data(realization=0, cutoff=10)  # make cutoff smaller fo
 
 # In[6]:
 
-ogn = create_graph_network(hidden=500, msg_dim=100)
+ogn = create_graph_network(hidden=512, msg_dim=64)
 
 
 # Let's run the training on this realization, trying to predict the dark matter overdensity, and time it.
@@ -32,7 +32,7 @@ ogn = create_graph_network(hidden=500, msg_dim=100)
 
 out_loss = do_training(
     ogn, graph_data['graph'],
-    total_epochs=20, batch_per_epoch=150
+    total_epochs=20, batch_per_epoch=150, batch=64
 );
 
 

@@ -16,6 +16,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau, OneCycleLR
 from tqdm import tqdm, trange
 from torch import sparse
 import torch_sparse as ts
+from apex import amp
 #!/usr/bin/env python
 # coding: utf-8
 
@@ -203,6 +204,10 @@ def do_training(
     # Set up optimizer:
     init_lr = lr
     opt = torch.optim.Adam(ogn.parameters(), lr=init_lr, weight_decay=weight_decay)
+    ogn.cuda()
+
+    # wrap model and optimizer
+    ogn, opt = amp.initialize(ogn, opt, opt_level="O1")
 
     sched = OneCycleLR(opt, max_lr=init_lr,
                        steps_per_epoch=batch_per_epoch,#len(trainloader),
@@ -212,7 +217,6 @@ def do_training(
     epoch = 0
 
     for epoch in trange(epoch, total_epochs):
-        ogn.cuda()
         total_loss = 0.0
         i = 0
         num_items = 0
@@ -241,8 +245,12 @@ def do_training(
             )
             
             loss, reg = new_loss(ogn, g, batch, regularization=l1)
-            ((loss + reg)/int(batch+1)).backward()
-            
+            lssrg = ((loss + reg)/int(batch+1))
+
+            # apply AMP scaling to loss
+            with amp.scale_loss(lssrg, opt) as scaled_loss:
+              scaled_loss.backward()
+ 
             opt.step()
             sched.step()
 
